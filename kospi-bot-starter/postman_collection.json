@@ -1,0 +1,65 @@
+{
+  "info": {
+    "name": "KOSPI Updates API",
+    "_postman_id": "b6d8c0a2-9f62-4d7a-9cc0-000000000001",
+    "description": "Test collection for /updates endpoint",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "healthz",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/healthz",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "healthz"
+          ]
+        }
+      }
+    },
+    {
+      "name": "updates",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "replace-with-your-internal-api-key"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/updates?limit=20&since=2025-08-10T05:00:00Z&market=KOSPI",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "updates"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "since",
+              "value": "2025-08-10T05:00:00Z"
+            },
+            {
+              "key": "market",
+              "value": "KOSPI"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

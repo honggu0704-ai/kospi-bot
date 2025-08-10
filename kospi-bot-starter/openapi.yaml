@@ -1,0 +1,60 @@
+openapi: 3.1.0
+info:
+  title: Korea Market Updates API
+  version: "1.0"
+servers:
+  - url: https://YOUR_DEPLOY_HOST
+paths:
+  /updates:
+    get:
+      operationId: getUpdates
+      summary: Get latest DART filings and news for KOSPI companies
+      parameters:
+        - name: since
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+          description: ISO8601 시작 시각(UTC). 없으면 서버 기본값(최근 3시간) 사용.
+        - name: symbols
+          in: query
+          required: false
+          schema: { type: string }
+          description: 콤마 구분 6자리 심볼(예: 005930,000660). 없으면 전 종목.
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - name: market
+          in: query
+          required: false
+          schema: { type: string, enum: [KOSPI, KOSDAQ, KONEX, ALL], default: KOSPI }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type: { type: string, enum: [DART, NEWS] }
+                        symbol: { type: string, nullable: true }
+                        title: { type: string }
+                        url: { type: string, format: uri }
+                        published_at: { type: string, format: date-time }
+                        tags:
+                          type: array
+                          items: { type: string }
+                        score: { type: number }
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+security:
+  - ApiKeyAuth: []
