@@ -1,7 +1,7 @@
 import httpx
 from datetime import datetime
 from typing import List, Dict, Any
-from .utils import make_hash
+from .utils import make_hash, is_kospi_stock_code
 
 DART_LIST_URL = "https://opendart.fss.or.kr/api/list.json"
 
@@ -29,9 +29,11 @@ def normalize_dart_items(raw: Dict[str, Any]) -> List[Dict[str, Any]]:
         published = datetime.strptime(dt, "%Y%m%d").isoformat() + "Z" if dt else datetime.utcnow().isoformat() + "Z"
         url = f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={it.get('rcp_no')}"
         symbol = it.get("stock_code")
+        # DART의 stock_code가 6자리 숫자가 아닐 수 있으므로 검증
+        if not is_kospi_stock_code(symbol):
+            symbol = None
         tags = []
         # 간단 태깅 예시
-        rt = title.lower()
         if "유상증자" in title or "증자" in title or "발행" in title:
             tags.append("자금조달")
         if "정정" in title:
@@ -46,7 +48,7 @@ def normalize_dart_items(raw: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         items.append({
             "type": "DART",
-            "symbol": symbol if symbol else None,
+            "symbol": symbol,
             "title": title,
             "url": url,
             "published_at": published,
