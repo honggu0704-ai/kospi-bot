@@ -11,15 +11,14 @@ from dotenv import load_dotenv
 
 # --- Utilities ---------------------------------------------------------------
 
-def utcnow_iso() -> datetime:
-    return datetime.now(timezone.utc)
+def utcnow_iso() -> str:
+    """Return current UTC time in ISO8601 format with trailing 'Z'."""
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
 
 def make_hash(*parts: str) -> str:
     joined = "||".join(parts)
     return hashlib.sha1(joined.encode("utf-8")).hexdigest()
-
-def is_kospi_stock_code(code: str) -> bool:
-    return code is not None and len(code) == 6 and code.isdigit()
 
 
 # --- DART service -----------------------------------------------------------
@@ -45,7 +44,9 @@ def normalize_dart_items(raw: Dict[str, Any]) -> List[Dict[str, Any]]:
     for it in raw.get("list", []) or []:
         title = it.get("rpt_nm") or "무제"
         dt = it.get("rcept_dt")
-        published = datetime.strptime(dt, "%Y%m%d").isoformat() + "Z" if dt else datetime.utcnow().isoformat() + "Z"
+        published = (
+            datetime.strptime(dt, "%Y%m%d").isoformat() + "Z" if dt else utcnow_iso()
+        )
         url = f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={it.get('rcp_no')}"
         symbol = it.get("stock_code")
         tags = []
@@ -97,9 +98,11 @@ def normalize_news(raw: Dict[str, Any]) -> List[Dict[str, Any]]:
         title = it.get("title", "").replace("<b>", "").replace("</b>", "")
         link = it.get("link")
         try:
-            published_at = datetime.strptime(it["pubDate"], "%a, %d %b %Y %H:%M:%S %z").astimezone(timezone.utc).isoformat()
+            published_at = datetime.strptime(
+                it["pubDate"], "%a, %d %b %Y %H:%M:%S %z"
+            ).astimezone(timezone.utc).isoformat()
         except Exception:
-            published_at = datetime.utcnow().isoformat() + "Z"
+            published_at = utcnow_iso()
         tags = []
         t = title
         if "단독" in t:
@@ -244,4 +247,10 @@ async def get_updates(
     items.sort(key=lambda x: (x.score, x.published_at), reverse=True)
     items = items[:limit]
     return {"items": items}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
